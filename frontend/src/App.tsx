@@ -4,6 +4,7 @@ import { TableProducts } from "./components/table-products";
 import { IProduct } from "./@types";
 import { api } from "./lib/api";
 import { NotFoundProducts } from "./components/table-products/not-found-products";
+import { Skeleton } from "./components/ui/skeleton";
 
 function App() {
   const { data: products, isPending } = useQuery<IProduct[]>({
@@ -14,11 +15,14 @@ function App() {
     },
   });
 
+  if (isPending) {
+    return <Skeleton className="bg-muted-foreground/50 w-full h-screen" />;
+  }
   return (
     <main className="bg-backgound flex flex-col p-32 h-screen w-screen">
       <section className="space-y-0 mb-4">
         <h1 className="text-2xl font-bold text-foreground/80">Produtos</h1>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-sm font-light">
           Lista de produtos cadastrados
         </p>
       </section>

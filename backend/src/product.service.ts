@@ -11,11 +11,14 @@ export class ProductService {
     const productSkuExists = await this.prisma.product.findUnique({
       where: {
         SKU: product.SKU,
-      }
+      },
     });
 
     if (productSkuExists) {
-      throw new HttpException("SKU já cadastrado em um produto", HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        { path: 'SKU', message: 'SKU já cadastrado em outro produto' },
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     await this.prisma.product.create({
@@ -25,7 +28,7 @@ export class ProductService {
         SKU: product.SKU,
         createdAt: new Date(),
         updatedAt: new Date(),
-      }
+      },
     });
 
     return;
@@ -35,11 +38,11 @@ export class ProductService {
     const product = await this.prisma.product.findUnique({
       where: {
         id,
-      }
+      },
     });
 
     if (!product) {
-      throw new HttpException("Produto não encontrado", HttpStatus.NOT_FOUND);
+      throw new HttpException('Produto não encontrado', HttpStatus.NOT_FOUND);
     }
 
     return product;
@@ -48,8 +51,8 @@ export class ProductService {
   public async list(): Promise<IProduct[]> {
     const products = await this.prisma.product.findMany({
       orderBy: {
-        name: "asc",
-      }
+        name: 'asc',
+      },
     });
 
     return products;
@@ -58,15 +61,18 @@ export class ProductService {
   public async update(id: number, product: CreateProductDto): Promise<void> {
     const aProduct = await this.find(id);
 
-    if(aProduct.SKU !== product.SKU) {
+    if (aProduct.SKU !== product.SKU) {
       const productSkuExists = await this.prisma.product.findUnique({
         where: {
           SKU: product.SKU,
-        }
+        },
       });
-  
+
       if (productSkuExists) {
-        throw new HttpException("SKU já cadastrado em um produto", HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          { path: 'SKU', message: 'SKU já cadastrado em outro produto' },
+          HttpStatus.BAD_REQUEST,
+        );
       }
     }
     await this.prisma.product.update({
@@ -78,7 +84,7 @@ export class ProductService {
         price: product.price,
         SKU: product.SKU,
         updatedAt: new Date(),
-      }
+      },
     });
 
     return;
@@ -89,7 +95,7 @@ export class ProductService {
     await this.prisma.product.delete({
       where: {
         id,
-      }
+      },
     });
 
     return;

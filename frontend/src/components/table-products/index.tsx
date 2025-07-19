@@ -2,6 +2,7 @@ import { IProduct } from "@/@types";
 import {
   Table,
   TableBody,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -9,7 +10,6 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Skeleton } from "../ui/skeleton";
-
 
 export function TableProducts() {
   const { data, isPending } = useQuery<IProduct[]>({
@@ -22,10 +22,10 @@ export function TableProducts() {
   });
 
   if (isPending) {
-    return <Skeleton className="w-full h-screen bg-muted"/>
-  };
+    return <Skeleton className="w-full h-screen bg-muted" />;
+  }
 
-  if(!data || data?.length === 0) {
+  if (!data || data?.length === 0) {
     return (
       <section className="bg-card rounded-sm overflow-clip border border-muted-foreground/40 p-4">
         <p className="text-muted-foreground">Nenhum produto encontrado.</p>
@@ -37,7 +37,7 @@ export function TableProducts() {
     <section className="bg-card rounded-sm overflow-clip border border-muted-foreground/40">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-muted-foreground/10">
             <TableHead>LA</TableHead>
             <TableHead>Nome</TableHead>
             <TableHead>Preço</TableHead>
@@ -50,16 +50,16 @@ export function TableProducts() {
           {data &&
             data.map((product) => (
               <TableRow key={product.id}>
-                <TableHead>
+                <TableCell>
                   #{product.firstMissingLetter.toUpperCase()}
-                </TableHead>
-                <TableHead>{product.name}</TableHead>
-                <TableHead>{product.price}</TableHead>
-                <TableHead>{product.SKU}</TableHead>
-                <TableHead>
+                </TableCell>
+                <TableCell>{product.name}</TableCell>
+                <TableCell>{product.price}</TableCell>
+                <TableCell>{product.SKU}</TableCell>
+                <TableCell>
                   {new Date(product.createdAt).toLocaleDateString()}
-                </TableHead>
-                <TableHead>Actions</TableHead>
+                </TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
             ))}
         </TableBody>

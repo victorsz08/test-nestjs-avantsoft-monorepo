@@ -6,9 +6,6 @@ import { PrismaService } from './package/prisma.service';
 @Module({
   imports: [],
   controllers: [ProductController],
-  providers: [
-    ProductService,
-    PrismaService,
-  ],
+  providers: [ProductService, PrismaService],
 })
 export class AppModule {}

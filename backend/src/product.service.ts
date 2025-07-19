@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { PrismaService } from './package/prisma.service';
 import { CreateProductDto } from './dto/product.dto';
 import { IProduct } from './@types';
@@ -15,10 +20,9 @@ export class ProductService {
     });
 
     if (productSkuExists) {
-      throw new HttpException(
-        { path: 'SKU', message: 'SKU já cadastrado em outro produto' },
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException({
+        errors: [{ field: 'SKU', messages: ['SKU já cadastrado'] }],
+      });
     }
 
     await this.prisma.product.create({
@@ -69,10 +73,9 @@ export class ProductService {
       });
 
       if (productSkuExists) {
-        throw new HttpException(
-          { path: 'SKU', message: 'SKU já cadastrado em outro produto' },
-          HttpStatus.BAD_REQUEST,
-        );
+        throw new BadRequestException({
+          errors: [{ field: 'SKU', messages: ['SKU já cadastrado'] }],
+        });
       }
     }
     await this.prisma.product.update({

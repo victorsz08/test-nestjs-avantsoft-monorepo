@@ -13,7 +13,6 @@ import { DialogTitle } from "@radix-ui/react-dialog";
 import { Pencil } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { AxiosError } from "axios";
 import { IProduct } from "@/@types";
 import { formatPrice } from "@/lib/utils";
 
@@ -25,7 +24,7 @@ const updateProductSchema = z.object({
 
 type UpdateProductSchema = z.infer<typeof updateProductSchema>;
 
-export function UpdateProductForm({ data } : { data: IProduct }) {
+export function UpdateProductForm({ data }: { data: IProduct }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const form = useForm<UpdateProductSchema>({
@@ -51,21 +50,27 @@ export function UpdateProductForm({ data } : { data: IProduct }) {
       setOpen(false);
       form.reset();
     },
-    onError: (error: AxiosError) => {
+    onError: (error: any) => {
+      console.log(error.response.data);
       if (error.response?.status === 400) {
-        form.setError("price", {
-          message: "O preço deve ser maior que 0"
-        })
+        error?.response?.data?.errors?.forEach((err: any) => {
+          form.setError(err.field, {
+            message: err.messages[0],
+          });
+        });
+        form.setError(error.response.path, {
+          message: error.response.data.message,
+        });
       }
     },
   });
 
   function onSubmit(data: UpdateProductSchema) {
     mutate(data);
-  };
+  }
 
   /**
-   * 
+   *
    * @param price valor do preço em string
    * @returns o valor com a moeda formatada Ex: 9999 -> R$ 99,99
    */
@@ -75,20 +80,21 @@ export function UpdateProductForm({ data } : { data: IProduct }) {
       style: "currency",
       currency: "BRL",
     }).format(priceFormatted / 100);
-
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger >
-        <Pencil className="w-5 h-5 text-blue-600 cursor-pointer"/>
+      <DialogTrigger>
+        <Pencil className="w-5 h-5 text-blue-600 cursor-pointer" />
       </DialogTrigger>
       <DialogContent>
         <DialogHeader className="mb-5">
-            <DialogTitle className="text-lg font-semibold">Atualizar Produto</DialogTitle>
-            <DialogDescription>
-              Atualize as informações do produto.
-            </DialogDescription>
+          <DialogTitle className="text-lg font-semibold">
+            Atualizar Produto
+          </DialogTitle>
+          <DialogDescription>
+            Atualize as informações do produto.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
@@ -113,9 +119,12 @@ export function UpdateProductForm({ data } : { data: IProduct }) {
                   <FormLabel className="text-xs bg-card px-1 absolute -translate-y-2 translate-x-1 font-semibold">
                     Preço
                   </FormLabel>
-                  <Input value={field.value} onChange={(e) => {
-                    field.onChange(formatPriceOnChange(e.target.value));
-                  }}/>
+                  <Input
+                    value={field.value}
+                    onChange={(e) => {
+                      field.onChange(formatPriceOnChange(e.target.value));
+                    }}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -133,22 +142,18 @@ export function UpdateProductForm({ data } : { data: IProduct }) {
                 </FormItem>
               )}
             />
-          <div className="flex justify-end mt-4">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              className="ml-2"
-              disabled={isPending}
-            >
-              {isPending ? "Atualizando..." : "Atualizar Produto"}
-            </Button>
-          </div>
+            <div className="flex justify-end mt-4">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" className="ml-2" disabled={isPending}>
+                {isPending ? "Atualizando..." : "Atualizar Produto"}
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>

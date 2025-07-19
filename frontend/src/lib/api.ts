@@ -1,7 +1,7 @@
 import axios from "axios";
 
 
-const BASE_URL = "https://reimagined-parakeet-qw45pp7jppvcxpr5-3000.app.github.dev/";
+const BASE_URL = "http://localhost:3000/";
 
 export const api = axios.create({
   baseURL: BASE_URL,

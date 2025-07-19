@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/product.dto';
 import { IProductResponseDto } from './@types';
@@ -8,7 +17,7 @@ import { findFirstMissingLetter } from './package/find-first-missing-letter';
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @Post("/products")
+  @Post('/products')
   @HttpCode(201)
   public async create(@Body() product: CreateProductDto): Promise<void> {
     await this.productService.create(product);
@@ -16,8 +25,8 @@ export class ProductController {
     return;
   }
 
-  @Get("/products/:id")
-  public async find(@Param("id") id: number): Promise<IProductResponseDto> {
+  @Get('/products/:id')
+  public async find(@Param('id') id: number): Promise<IProductResponseDto> {
     const product = await this.productService.find(Number(id));
 
     const output: IProductResponseDto = {
@@ -28,12 +37,12 @@ export class ProductController {
       firstMissingLetter: findFirstMissingLetter(product.name),
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
-    }
+    };
 
-    return output
+    return output;
   }
 
-  @Get("/products")
+  @Get('/products')
   @HttpCode(200)
   public async list(): Promise<IProductResponseDto[]> {
     const products = await this.productService.list();
@@ -51,17 +60,20 @@ export class ProductController {
     return output;
   }
 
-  @Put("/products/:id")
+  @Put('/products/:id')
   @HttpCode(204)
-  public async update(@Param("id") id: number, @Body() product: CreateProductDto): Promise<void> {
+  public async update(
+    @Param('id') id: number,
+    @Body() product: CreateProductDto,
+  ): Promise<void> {
     await this.productService.update(Number(id), product);
 
     return;
   }
 
-  @Delete("/products/:id")
+  @Delete('/products/:id')
   @HttpCode(204)
-  public async delete(@Param("id") id: number): Promise<void> {
+  public async delete(@Param('id') id: number): Promise<void> {
     await this.productService.delete(Number(id));
 
     return;

@@ -10,7 +10,6 @@ import { DialogTitle } from "@radix-ui/react-dialog";
 import { Plus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { AxiosError } from "axios";
 
 const createProductSchema = z.object({
   name: z.string().min(1, { message: "Nome é obrigatório" }),
@@ -46,21 +45,27 @@ export function CreateProductForm() {
       setOpen(false);
       form.reset();
     },
-    onError: (error: AxiosError) => {
+    onError: (error: any) => {
       if (error.response?.status === 400) {
-        form.setError("price", {
-          message: "O preço deve ser maior que 0"
-        })
+        error?.response?.data?.errors?.forEach((err: any) => {
+          form.setError(err.field, {
+            message: err.messages[0],
+          });
+        });
+      } else {
+        form.setError("SKU", {
+          message: "SKU já cadastrado",
+        });
       }
     },
   });
 
   function onSubmit(data: CreateProductSchema) {
     mutate(data);
-  };
+  }
 
   /**
-   * 
+   *
    * @param price valor do preço em string
    * @returns o valor com a moeda formatada Ex: 9999 -> R$ 99,99
    */
@@ -70,23 +75,24 @@ export function CreateProductForm() {
       style: "currency",
       currency: "BRL",
     }).format(priceFormatted / 100);
-
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button" >
-            <Plus/>
-            <span className="pr-2">Criar Produto</span>
+        <Button type="button">
+          <Plus />
+          <span className="pr-2">Criar Produto</span>
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader className="mb-5">
-            <DialogTitle className="text-lg font-semibold">Criar Produto</DialogTitle>
-            <DialogDescription>
-              Preencha os campos abaixo para criar um novo produto.
-            </DialogDescription>
+          <DialogTitle className="text-lg font-semibold">
+            Criar Produto
+          </DialogTitle>
+          <DialogDescription>
+            Preencha os campos abaixo para criar um novo produto.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
@@ -111,9 +117,12 @@ export function CreateProductForm() {
                   <FormLabel className="text-xs bg-card px-1 absolute -translate-y-2 translate-x-1 font-semibold">
                     Preço
                   </FormLabel>
-                  <Input value={field.value} onChange={(e) => {
-                    field.onChange(formatPrice(e.target.value));
-                  }}/>
+                  <Input
+                    value={field.value}
+                    onChange={(e) => {
+                      field.onChange(formatPrice(e.target.value));
+                    }}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -131,22 +140,18 @@ export function CreateProductForm() {
                 </FormItem>
               )}
             />
-          <div className="flex justify-end mt-4">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              className="ml-2"
-              disabled={isPending}
-            >
-              {isPending ? "Criando..." : "Criar Produto"}
-            </Button>
-          </div>
+            <div className="flex justify-end mt-4">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" className="ml-2" disabled={isPending}>
+                {isPending ? "Criando..." : "Criar Produto"}
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>

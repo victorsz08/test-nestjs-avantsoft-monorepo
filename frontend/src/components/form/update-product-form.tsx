@@ -1,3 +1,6 @@
+
+
+
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -7,37 +10,39 @@ import { Button } from "../ui/button";
 import { Form, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { DialogTitle } from "@radix-ui/react-dialog";
-import { Plus } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { AxiosError } from "axios";
+import { IProduct } from "@/@types";
+import { formatPrice } from "@/lib/utils";
 
-const createProductSchema = z.object({
+const updateProductSchema = z.object({
   name: z.string().min(1, { message: "Nome é obrigatório" }),
   price: z.string().nonempty({ message: "Preço é obrigatório" }),
   SKU: z.string().min(1, { message: "SKU é obrigatório" }),
 });
 
-type CreateProductSchema = z.infer<typeof createProductSchema>;
+type UpdateProductSchema = z.infer<typeof updateProductSchema>;
 
-export function CreateProductForm() {
+export function UpdateProductForm({ data } : { data: IProduct }) {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
-  const form = useForm<CreateProductSchema>({
-    resolver: zodResolver(createProductSchema),
+  const form = useForm<UpdateProductSchema>({
+    resolver: zodResolver(updateProductSchema),
     defaultValues: {
-      name: "",
-      price: "",
-      SKU: "",
+      name: data.name,
+      price: formatPrice(data.price),
+      SKU: data.SKU,
     },
   });
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async (data: CreateProductSchema) => {
-      await api.post("/products", {
-        name: data.name,
-        price: Number(data.price.replace(",", ".").replace("R$", "").trim()),
-        SKU: data.SKU,
+    mutationFn: async (newData: UpdateProductSchema) => {
+      await api.put(`products/${data.id}`, {
+        name: newData.name,
+        price: Number(newData.price.replace(",", ".").replace("R$", "").trim()),
+        SKU: newData.SKU,
       });
       return;
     },
@@ -55,7 +60,7 @@ export function CreateProductForm() {
     },
   });
 
-  function onSubmit(data: CreateProductSchema) {
+  function onSubmit(data: UpdateProductSchema) {
     mutate(data);
   };
 
@@ -64,7 +69,7 @@ export function CreateProductForm() {
    * @param price valor do preço em string
    * @returns o valor com a moeda formatada Ex: 9999 -> R$ 99,99
    */
-  function formatPrice(price: string): string {
+  function formatPriceOnChange(price: string): string {
     const priceFormatted = Number(price.replace(/\D/g, ""));
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -75,17 +80,14 @@ export function CreateProductForm() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button type="button" >
-            <Plus/>
-            <span className="pr-2">Criar Produto</span>
-        </Button>
+      <DialogTrigger >
+        <Pencil className="w-5 h-5 text-blue-600 cursor-pointer"/>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader className="mb-5">
-            <DialogTitle className="text-lg font-semibold">Criar Produto</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">Atualizar Produto</DialogTitle>
             <DialogDescription>
-              Preencha os campos abaixo para criar um novo produto.
+              Atualize as informações do produto.
             </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -112,7 +114,7 @@ export function CreateProductForm() {
                     Preço
                   </FormLabel>
                   <Input value={field.value} onChange={(e) => {
-                    field.onChange(formatPrice(e.target.value));
+                    field.onChange(formatPriceOnChange(e.target.value));
                   }}/>
                   <FormMessage />
                 </FormItem>
@@ -144,7 +146,7 @@ export function CreateProductForm() {
               className="ml-2"
               disabled={isPending}
             >
-              {isPending ? "Criando..." : "Criar Produto"}
+              {isPending ? "Atualizando..." : "Atualizar Produto"}
             </Button>
           </div>
           </form>

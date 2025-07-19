@@ -1,21 +1,39 @@
-import { CreateProductForm } from "./components/form/create-product-form"
-import { TableProducts } from "./components/table-products"
+import { useQuery } from "@tanstack/react-query";
+import { CreateProductForm } from "./components/form/create-product-form";
+import { TableProducts } from "./components/table-products";
+import { IProduct } from "./@types";
+import { api } from "./lib/api";
+import { NotFoundProducts } from "./components/table-products/not-found-products";
 
 function App() {
-  
+  const { data: products, isPending } = useQuery<IProduct[]>({
+    queryKey: ["products"],
+    queryFn: async () => {
+      const response = await api.get<IProduct[]>("/products");
+      return response.data;
+    },
+  });
 
-    return (
-        <main className='bg-backgound flex flex-col p-16 h-screen w-screen'>
-            <section className='space-y-0 mb-4'>
-                <h1 className='text-2xl font-bold text-foreground/80'>Produtos</h1>
-                <p className="text-muted-foreground text-sm">Lista de produtos cadastrados</p>
-            </section>
-            <section className='mb-4 w-full flex justify-end'>
-                <CreateProductForm />
-            </section>
-            <TableProducts/>
-        </main>
-    )
+  return (
+    <main className="bg-backgound flex flex-col p-32 h-screen w-screen">
+      <section className="space-y-0 mb-4">
+        <h1 className="text-2xl font-bold text-foreground/80">Produtos</h1>
+        <p className="text-muted-foreground text-sm">
+          Lista de produtos cadastrados
+        </p>
+      </section>
+      {products && products.length > 0 ? (
+        <>
+          <section className="mb-4 w-full flex justify-end">
+            <CreateProductForm />
+          </section>
+          <TableProducts data={products} />
+        </>
+      ) : (
+        <NotFoundProducts />
+      )}
+    </main>
+  );
 }
 
-export default App
+export default App;

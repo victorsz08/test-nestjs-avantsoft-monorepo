@@ -56,16 +56,18 @@ export class ProductService {
   }
 
   public async update(id: number, product: CreateProductDto): Promise<void> {
-    await this.find(id);
+    const aProduct = await this.find(id);
 
-    const productSkuExists = await this.prisma.product.findUnique({
-      where: {
-        SKU: product.SKU,
+    if(aProduct.SKU !== product.SKU) {
+      const productSkuExists = await this.prisma.product.findUnique({
+        where: {
+          SKU: product.SKU,
+        }
+      });
+  
+      if (productSkuExists) {
+        throw new HttpException("SKU já cadastrado em um produto", HttpStatus.BAD_REQUEST);
       }
-    });
-
-    if (productSkuExists) {
-      throw new HttpException("SKU já cadastrado em um produto", HttpStatus.BAD_REQUEST);
     }
     await this.prisma.product.update({
       where: {
